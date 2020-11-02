@@ -18,6 +18,7 @@ public class Generator : MonoBehaviour
     public static byte[] bytes;
 
     public GameObject neuronPrefab;
+    public GameObject nodePrefab;
     bool systemCreated = false;
     List<GameObject> neuronList = new List<GameObject>();
     int BSI = 1;
@@ -58,7 +59,7 @@ public class Generator : MonoBehaviour
     private void CreateNervousSystem()
     {
         bytes = File.ReadAllBytes(filePath);
-        List<int> byteList = new List<int>(); 
+        List<int> byteList = new List<int>();
         List<Vector3> positionList = new List<Vector3>();
         positionList.Add(Vector3.one);
         int dim;
@@ -74,10 +75,10 @@ public class Generator : MonoBehaviour
         {
             dim = 1000000000;
         }
-                
+
         for (int i = 0; i < bytes.Length / dim; i++)
         {
-            byteList.Add(ByteArraySum(SliceByteArray(bytes, dim * i, dim * (i+1))));
+            byteList.Add(ByteArraySum(SliceByteArray(bytes, dim * i, dim * (i + 1))));
         }
 
         for (int i = 0; i < byteList.Count; i++)
@@ -86,7 +87,20 @@ public class Generator : MonoBehaviour
         }
         for (int i = 0; i < positionList.Count; i++)
         {
-           neuronList.Add(Instantiate(neuronPrefab, positionList[i], Quaternion.identity));
+            neuronList.Add(Instantiate(neuronPrefab, positionList[i], Quaternion.identity));
+        }
+        
+       for (int i = 0; i < neuronList.Count; i++)
+        {
+            List<GameObject> nearest = neuronList[i].GetComponent<Neuron>().FindNearest(neuronList);
+            for (int j = 0; j < nearest.Count; j++)
+            {
+                neuronList[i].GetComponent<Neuron>().AddConnection(nearest[j]);
+            }
+        }
+        for (int i = 0; i < neuronList.Count; i++)
+        {
+           StartCoroutine(neuronList[i].GetComponent<Neuron>().Connect(nodePrefab));
         }
     }
 
